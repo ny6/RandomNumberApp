@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text } from 'react-native';
+import shuffle from 'lodash.shuffle';
 
 import RandomNumber from './RandomNumber';
 
@@ -55,9 +56,23 @@ class Game extends Component {
     }, 1000);
   }
 
+  componentWillUpdate(nextProps, nextState) {
+    if (
+      nextState.selectedIds !== this.state.selectedIds ||
+      nextState.remainingSecs === 0
+    ) {
+      this.gameStatus = this.calcGameStatus(nextState);
+      if (this.gameStatus !== 'PLAYING') {
+        clearInterval(this.intervalId);
+      }
+    }
+  }
+
   componentWillUnmount() {
     clearInterval(this.intervalId);
   }
+
+  gameStatus = 'PLAYING';
 
   randomNumbers = Array
     .from({ length: this.props.randomNumberCount })
@@ -65,6 +80,7 @@ class Game extends Component {
   target = this.randomNumbers
     .slice(0, this.props.randomNumberCount - 2)
     .reduce((acc, curr) => acc + curr, 0);
+  shuffledRandomNums = shuffle(this.randomNumbers);
 
   isNumSelected = i => this.state.selectedIds.indexOf(i) >= 0;
 
@@ -72,12 +88,12 @@ class Game extends Component {
     this.setState(prevState => ({ selectedIds: [...prevState.selectedIds, i] }));
   }
 
-  gameStatus = () => {
-    const sumSelected = this.state.selectedIds.reduce((acc, curr) => (
-      acc + this.randomNumbers[curr]
+  calcGameStatus = (nextState) => {
+    const sumSelected = nextState.selectedIds.reduce((acc, curr) => (
+      acc + this.shuffledRandomNums[curr]
     ), 0);
 
-    if (this.state.remainingSecs === 0) {
+    if (nextState.remainingSecs === 0) {
       return 'LOST';
     }
     if (sumSelected < this.target) {
@@ -90,7 +106,7 @@ class Game extends Component {
   };
 
   render() {
-    const gameStatus = this.gameStatus();
+    const { gameStatus } = this;
     return (
       <View style={styles.container}>
         <Text style={[
@@ -100,7 +116,7 @@ class Game extends Component {
         >{this.target}
         </Text>
         <View style={styles.randomContainer}>
-          {this.randomNumbers.map((num, i) => (
+          {this.shuffledRandomNums.map((num, i) => (
             <RandomNumber
               key={i /* eslint-disable-line */}
               id={i}
