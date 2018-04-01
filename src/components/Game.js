@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, Text } from 'react-native';
+import { Button, StyleSheet, View, Text } from 'react-native';
 import shuffle from 'lodash.shuffle';
 
 import RandomNumber from './RandomNumber';
@@ -37,6 +37,7 @@ class Game extends Component {
   static propTypes = {
     randomNumberCount: PropTypes.number.isRequired,
     initSeconds: PropTypes.number.isRequired,
+    onPlayAgain: PropTypes.func.isRequired,
   };
 
   state = {
@@ -125,6 +126,9 @@ class Game extends Component {
               onPress={this.selectNum}
             />
           ))}
+          {this.gameStatus !== 'PLAYING' &&
+            (<Button title="Play Again" onPress={this.props.onPlayAgain} />
+          )}
           <Text>{this.state.remainingSecs}</Text>
         </View>
       </View>
